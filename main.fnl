@@ -32,22 +32,28 @@
 (fn get-next-color [...]
   ;; returns the new color for a pixel in [r g b] form
   (let [{: x : y : board} ...]
-    (case [(sum-neighbors ...) (pick-values 3 (board:getPixel x y))] ; multi value getPixel must be last!
+    (case {:sum (sum-neighbors ...)
+           :cell [(pick-values 3 (board:getPixel x y))]}
       ;; rule 1: live cell with less than 2 live neighbors dies
-      (where [neighbors 1 1 1] (< neighbors 2))
+      (where {: sum : cell}
+             (and (< sum 2) (= (table.concat cell) (table.concat alive))))
       dead
       ;; rule 2: live cell with 2 or 3 live neighbors lives
-      (where [neighbors 1 1 1] (or (= neighbors 2) (= neighbors 3)))
+      (where {: sum : cell}
+             (and (or (= sum 2) (= sum 3))
+                  (= (table.concat cell) (table.concat alive))))
       alive
       ;; rule 3: live cell with more than 3 live neighbors dies
-      (where [neighbors 1 1 1] (> neighbors 3))
+      (where {: sum : cell}
+             (and (> sum 3) (= (table.concat cell) (table.concat alive))))
       dead
       ;; rule 4: dead cell with 3 live neighbors lives
-      (where [neighbors 0 0 0] (= neighbors 3))
+      (where {: sum : cell}
+             (and (= sum 3) (= (table.concat cell) (table.concat dead))))
       alive
       ;; no change
-      [_ r g b]
-      [r g b])))
+      {: cell}
+      cell)))
 
 (fn love.load []
   ;; start a thread listening on stdin
